@@ -1,0 +1,84 @@
+﻿@page "/pacients/create"
+@using Microsoft.EntityFrameworkCore
+@using Laba_1.Data
+@inject IDbContextFactory<Laba_1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Добавить</PageTitle>
+
+<h1>Добавить</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Pacient" OnValidSubmit="AddPacient" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="lastname" class="form-label">Фамилия:</label> 
+                <InputText id="lastname" @bind-Value="Pacient.LastName" class="form-control" /> 
+                <ValidationMessage For="() => Pacient.LastName" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="name" class="form-label">Имя:</label> 
+                <InputText id="name" @bind-Value="Pacient.Name" class="form-control" /> 
+                <ValidationMessage For="() => Pacient.Name" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="patronymic" class="form-label">Отчество:</label> 
+                <InputText id="patronymic" @bind-Value="Pacient.Patronymic" class="form-control" /> 
+                <ValidationMessage For="() => Pacient.Patronymic" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="date" class="form-label">Дата рождения:</label> 
+                <InputDate id="date" @bind-Value="Pacient.Date" class="form-control" /> 
+                <ValidationMessage For="() => Pacient.Date" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="sex" class="form-label">Пол:</label> 
+                <InputText id="sex" @bind-Value="Pacient.Sex" class="form-control" /> 
+                <ValidationMessage For="() => Pacient.Sex" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="diagnoz" class="form-label">Диагноз:</label> 
+                <InputText id="diagnoz" @bind-Value="Pacient.diagnoz" class="form-control" /> 
+                <ValidationMessage For="() => Pacient.diagnoz" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <input type="hidden" name="Pacient.PalataId" @bind="Pacient.PalataId" class="form-control">
+            </div>        
+            <button type="submit" class="btn btn-primary">Добавить</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/pacients?palataid=@PalataId">Вернуться к списку пациентов</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? PalataId { get; set; }
+
+    [SupplyParameterFromForm]
+    private Pacient Pacient { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        if(PalataId == null)
+        {
+            NavigationManager.NavigateTo("Страница не найдена");
+        }
+        Pacient.PalataId = PalataId ?? 0;
+    }
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddPacient()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Pacients.Add(Pacient);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/pacients?palataid="+PalataId.ToString());
+    }
+}

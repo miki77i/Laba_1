@@ -1,0 +1,61 @@
+﻿@page "/palata"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Laba_1.Data
+@using Laba_1.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<Laba_1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Палаты</PageTitle>
+
+<h1>Палаты отделения - @OtdelenieName</h1>
+
+<p>
+    <a href="palata/create?otdelenieid=@OtdelenieId">Добавить палату</a>
+</p>
+
+<p>
+    <a href="otdelenies">Возврат к списку отделений</a>
+</p>
+
+<QuickGrid Class="table" Items="filteredPalatas">
+    <PropertyColumn Title="Номер палаты" Property="palata => palata.NumPalata" />
+    <PropertyColumn Title="Количество коек" Property="palata => palata.TotalBed" />
+
+    <TemplateColumn Context="palata">
+        <a href="@($"pacients?palataid={palata.PalataId}")">Пациенты</a> |
+        <a href="@($"palata/edit?palataid={palata.PalataId}")">Редактировать</a> |
+        <a href="@($"palata/details?palataid={palata.PalataId}")">Просмотр</a> |
+        <a href="@($"palata/delete?palataid={palata.PalataId}")">Удалить</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? OtdelenieId { get; set; }
+
+    public string? OtdelenieName { get; set; }
+
+    private ApplicationDbContext context = default!;
+    private IQueryable<Palata>? filteredPalatas;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        if(OtdelenieId == null)
+        {
+            NavigationManager.NavigateTo("Страница не найдена");
+        }
+
+        var Otdelenie = context.Otdelenies.FirstOrDefault(d => d.OtdelenieId == OtdelenieId);
+        if (Otdelenie == null)
+        {
+            NavigationManager.NavigateTo("Страница не найдена");
+        }
+        OtdelenieName = Otdelenie!.OtdelenieName;
+        filteredPalatas = context.Palatas.Where(p => p.OtdelenieId == OtdelenieId);
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

@@ -1,0 +1,65 @@
+﻿@page "/pacients"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Laba_1.Data
+@using Laba_1.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<Laba_1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Пациент</PageTitle>
+
+<h1>Пациент палаты номер - @NumPalata</h1>
+
+<p>
+    <a href="pacients/create?palataid=@PalataId">Добавить пациента</a>
+</p>
+
+<p>
+    <a href="palata?otdelenieid=@OtdelenieId">Возврат к списку палат</a>
+</p>
+
+<QuickGrid Class="table" Items="filteredPacients">
+    <PropertyColumn Title="Фамилия" Property="pacient => pacient.LastName" />
+    <PropertyColumn Title="Имя" Property="pacient => pacient.Name" />
+    <PropertyColumn Title="Отчество" Property="pacient => pacient.Patronymic" />
+    <PropertyColumn Title="Дата рождения" Property="pacient => pacient.Date" />
+    <PropertyColumn Title="Пол" Property="pacient => pacient.Sex" />
+    <PropertyColumn Title="Диагноз" Property="pacient => pacient.diagnoz" />
+    @* <PropertyColumn Title="Фамилия" Property="pacient => pacient.PalataId" /> *@
+
+    <TemplateColumn Context="pacient">
+        <a href="@($"pacients/edit?pacientid={pacient.PacientId}")">Редактировать</a> |
+        <a href="@($"pacients/details?pacientid={pacient.PacientId}")">Просмотр</a> |
+        <a href="@($"pacients/delete?pacientid={pacient.PacientId}")">Удалить</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? PalataId { get; set; }
+
+    public int? NumPalata { get; set; }
+    public int? OtdelenieId { get; set; }
+
+    private ApplicationDbContext context = default!;
+     private IQueryable<Pacient>? filteredPacients;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        if(PalataId == null){
+            NavigationManager.NavigateTo("Страница не найдена");
+        }
+        var Palata = context.Palatas.FirstOrDefault(d => d.PalataId == PalataId);
+        if (Palata == null)
+        {
+            NavigationManager.NavigateTo("Страница не найдена");
+        }
+        NumPalata = Palata!.NumPalata;
+        OtdelenieId = Palata.OtdelenieId;
+        filteredPacients = context.Pacients.Where(p => p.PalataId == PalataId);
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

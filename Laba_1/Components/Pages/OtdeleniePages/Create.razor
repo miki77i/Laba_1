@@ -1,0 +1,53 @@
+﻿@page "/otdelenies/create"
+@using Microsoft.EntityFrameworkCore
+@using Laba_1.Data
+@inject IDbContextFactory<Laba_1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Создать</PageTitle>
+
+<h1>Создать</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Otdelenie" OnValidSubmit="AddOtdelenie" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="otdeleniename" class="form-label">Название отделения:</label> 
+                <InputText id="otdeleniename" @bind-Value="Otdelenie.OtdelenieName" class="form-control" /> 
+                <ValidationMessage For="() => Otdelenie.OtdelenieName" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="zavotdelenie" class="form-label">Заведующий отделением:</label> 
+                <InputText id="zavotdelenie" @bind-Value="Otdelenie.ZavOtdelenie" class="form-control" /> 
+                <ValidationMessage For="() => Otdelenie.ZavOtdelenie" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="totalpalat" class="form-label">Количество палат:</label> 
+                <InputNumber id="totalpalat" @bind-Value="Otdelenie.TotalPalat" class="form-control" /> 
+                <ValidationMessage For="() => Otdelenie.TotalPalat" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Создать</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/otdelenies">Возврат к списку отделений</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Otdelenie Otdelenie { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddOtdelenie()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Otdelenies.Add(Otdelenie);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/otdelenies");
+    }
+}

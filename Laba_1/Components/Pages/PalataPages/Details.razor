@@ -1,0 +1,47 @@
+﻿@page "/palata/details"
+@using Microsoft.EntityFrameworkCore
+@using Laba_1.Data
+@inject IDbContextFactory<Laba_1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Просмотр</PageTitle>
+
+<h1>Просмотр</h1>
+
+<div>
+    <hr />
+    @if (palata is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Номер палаты</dt>
+            <dd class="col-sm-10">@palata.NumPalata</dd>
+            <dt class="col-sm-2">Количество коек</dt>
+            <dd class="col-sm-10">@palata.TotalBed</dd>
+        </dl>
+        <div>
+            <a href="@($"/palata/edit?palataid={palata.PalataId}")">Редактировать</a> |
+            <a href="@($"/palata?otdelenieid="+palata.OtdelenieId.ToString())">Возврат к спику палат</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Palata? palata;
+
+    [SupplyParameterFromQuery]
+    private int PalataId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        palata = await context.Palatas.FirstOrDefaultAsync(m => m.PalataId == PalataId);
+
+        if (palata is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

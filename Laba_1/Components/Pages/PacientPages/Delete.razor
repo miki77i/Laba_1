@@ -1,0 +1,81 @@
+﻿@page "/pacients/delete"
+@using Microsoft.EntityFrameworkCore
+@using Laba_1.Data
+@inject IDbContextFactory<Laba_1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Удалить</PageTitle>
+
+<h1>Удалить</h1>
+
+<p>Вы действительно хотите удалить запись?</p>
+<div>
+    <hr />
+    @if (pacient is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Фамилия</dt>
+            <dd class="col-sm-10">@pacient.LastName</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Имя</dt>
+            <dd class="col-sm-10">@pacient.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Отчество</dt>
+            <dd class="col-sm-10">@pacient.Patronymic</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Дата</dt>
+            <dd class="col-sm-10">@pacient.Date</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Пол</dt>
+            <dd class="col-sm-10">@pacient.Sex</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Диагноз</dt>
+            <dd class="col-sm-10">@pacient.diagnoz</dd>
+        </dl>
+        @* <dl class="row">
+            <dt class="col-sm-2">PalataId</dt>
+            <dd class="col-sm-10">@pacient.PalataId</dd>
+        </dl> *@
+        <EditForm method="post" Model="pacient" OnValidSubmit="DeletePacient" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(pacient is null)">Удалить</button> |
+            <a href="/pacients?palataid=@pacient?.PacientId">Вернуться к списку пациентов</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Pacient? pacient;
+
+    private int PalataId {get; set;}
+
+    [SupplyParameterFromQuery]
+    private int PacientId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        pacient = await context.Pacients.FirstOrDefaultAsync(m => m.PacientId == PacientId);
+
+        if (pacient is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        PalataId = pacient!.PalataId;
+    }
+
+    private async Task DeletePacient()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Pacients.Remove(pacient!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/pacients?palataid="+PalataId.ToString());
+    }
+}

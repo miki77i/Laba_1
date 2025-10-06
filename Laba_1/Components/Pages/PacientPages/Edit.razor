@@ -1,0 +1,122 @@
+﻿@page "/pacients/edit"
+@using Microsoft.EntityFrameworkCore
+@using Laba_1.Data
+@inject IDbContextFactory<Laba_1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Редактировать</PageTitle>
+
+<h1>Редактировать</h1>
+
+<hr />
+@if (Pacient is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Pacient" OnValidSubmit="UpdatePacient" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="Pacient.PacientId" value="@Pacient.PacientId" />
+                <div class="mb-3">
+                    <label for="lastname" class="form-label">Фамилия:</label>
+                    <InputText id="lastname" @bind-Value="Pacient.LastName" class="form-control" />
+                    <ValidationMessage For="() => Pacient.LastName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Имя:</label>
+                    <InputText id="name" @bind-Value="Pacient.Name" class="form-control" />
+                    <ValidationMessage For="() => Pacient.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="patronymic" class="form-label">Отчество:</label>
+                    <InputText id="patronymic" @bind-Value="Pacient.Patronymic" class="form-control" />
+                    <ValidationMessage For="() => Pacient.Patronymic" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Дата рождения:</label>
+                    <InputDate id="date" @bind-Value="Pacient.Date" class="form-control" />
+                    <ValidationMessage For="() => Pacient.Date" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="sex" class="form-label">Пол:</label>
+                    <InputText id="sex" @bind-Value="Pacient.Sex" class="form-control" />
+                    <ValidationMessage For="() => Pacient.Sex" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="diagnoz" class="form-label">Диагноз:</label>
+                    <InputText id="diagnoz" @bind-Value="Pacient.diagnoz" class="form-control" />
+                    <ValidationMessage For="() => Pacient.diagnoz" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <input type="hidden" name="Pacient.PalataId" @bind="Pacient.PalataId" class="form-control" />
+                </div>
+                @* <div class="mb-3">
+                    <label for="palataid" class="form-label">PalataId:</label>
+                    <InputNumber id="palataid" @bind-Value="Pacient.PalataId" class="form-control" />
+                    <ValidationMessage For="() => Pacient.PalataId" class="text-danger" />
+                </div> *@
+
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/pacients?palataid=@Pacient?.PacientId">Вернуться к списку пациентов</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int PacientId { get; set; }
+
+    [SupplyParameterFromForm]
+    private Pacient? Pacient { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Pacient ??= await context.Pacients.FirstOrDefaultAsync(m => m.PacientId == PacientId);
+
+        if (Pacient is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdatePacient()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Pacient!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!PacientExists(Pacient!.PacientId))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/pacients?palataId="+Pacient!.PalataId.ToString());
+    }
+
+    private bool PacientExists(int pacientid)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Pacients.Any(e => e.PacientId == pacientid);
+    }
+}

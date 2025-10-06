@@ -1,0 +1,57 @@
+﻿@page "/pacients/details"
+@using Microsoft.EntityFrameworkCore
+@using Laba_1.Data
+@inject IDbContextFactory<Laba_1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Просмотр</PageTitle>
+
+<h1>Просмотр</h1>
+
+<div>
+    <hr />
+    @if (pacient is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Фамилия</dt>
+            <dd class="col-sm-10">@pacient.LastName</dd>
+            <dt class="col-sm-2">Имя</dt>
+            <dd class="col-sm-10">@pacient.Name</dd>
+            <dt class="col-sm-2">Отчество</dt>
+            <dd class="col-sm-10">@pacient.Patronymic</dd>
+            <dt class="col-sm-2">Дата рождения</dt>
+            <dd class="col-sm-10">@pacient.Date</dd>
+            <dt class="col-sm-2">Пол</dt>
+            <dd class="col-sm-10">@pacient.Sex</dd>
+            <dt class="col-sm-2">Диагноз</dt>
+            <dd class="col-sm-10">@pacient.diagnoz</dd>
+            @* <dt class="col-sm-2">PalataId</dt>
+            <dd class="col-sm-10">@pacient.PalataId</dd> *@
+        </dl>
+        <div>
+            <a href="@($"/pacients/edit?pacientid={pacient.PacientId}")">Редактировать</a> |
+            <a href="@($"/pacients?palataid="+pacient.PalataId.ToString())">Вернуться к списку пациентов</a> 
+        </div>
+    }
+</div>
+
+@code {
+    private Pacient? pacient;
+
+    [SupplyParameterFromQuery]
+    private int PacientId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        pacient = await context.Pacients.FirstOrDefaultAsync(m => m.PacientId == PacientId);
+
+        if (pacient is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}
