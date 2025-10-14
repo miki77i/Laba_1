@@ -1,0 +1,39 @@
+services:
+  web:
+    build: ./Laba_1            # Собрать образ для веб-приложения из Dockerfile в папке app-src
+    container_name: mywebapp # Имя контейнера (необязательно, для удобства)
+    ports:
+      - "8080:8080" # Проброс порта: 8080 на хосте -> 8080 в контейнере (измените на актуальные порты вашего приложения)
+    env_file: .env # Подключаем файл .env, чтобы использовать указанные в нем переменные
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=mydb;Port=5432;Database=labdb;Username=student;Password=student123
+      - DB_HOST=db     # Адрес хоста БД для приложения (имя сервиса БД)
+      - DB_USER=${POSTGRES_USER}   # Имя пользователя БД, берётся из .env
+      - DB_PASS=${POSTGRES_PASSWORD} # Пароль пользователя БД, из .env
+      - DB_NAME=${POSTGRES_DB} # Имя базы, из .env
+    depends_on:
+      - db # Зависимость: контейнер web запустится после контейнера db
+    networks:
+      - app-network # Подключаем веб-сервис к пользовательской сети
+  db:
+    image: postgres:15 # Используем официальный образ Postgres (версии 15, можно указать другую версию)
+    container_name: mydb # Имя контейнера БД (необязательно)
+    ports:
+      - "5432:5432" # Пробрасываем порт Postgres на хост (5432 обычно стандартный порт PG)
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data   # Монтируем именованный volume в папку данных PG внутри контейнера
+    networks:
+      - app-network
+ # Определяем тома (именованные) для использования в сервисах
+volumes:
+  db_data:
+
+ # Определяем пользовательскую сеть, через которую будут общаться контейнеры
+networks:
+  app-network:
+    driver: bridge
