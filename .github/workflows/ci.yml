@@ -1,5 +1,4 @@
 name: CI Pipeline
-
 on:
   push:
     branches: [master]
@@ -7,6 +6,7 @@ on:
     branches: [master]
 
 jobs:
+  # Job 1: Проверка качества Dockerfile
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -27,33 +27,30 @@ jobs:
           name: hadolint-report
           path: hadolint-report.txt
 
+  # Job 2: Сборка (запускается только после успешного lint)
   build:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      # Шаг 1: Получить код из репозитория
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      # Шаг 2: Собрать Docker образ
       - name: Build Docker image
         run: |
           docker build -t myapp:test -f Laba_1/Dockerfile .
           echo "Docker image built successfully!"
 
-      # Шаг 3: Проверить, что контейнер запускается
       - name: Test container
         run: |
           docker run --rm myapp:test echo "Container works!"
 
       - name: Save build log
-      run: |
-        echo "Build completed at $(date)" > build-log.txt
-        docker images | grep myapp >> build-log.txt
+        run: |
+          echo "Build completed at $(date)" > build-log.txt
+          docker images | grep myapp >> build-log.txt
 
       - name: Upload build log
         uses: actions/upload-artifact@v4
         with:
           name: build-log
           path: build-log.txt
-
