@@ -16,7 +16,7 @@ jobs:
       - name: Lint Dockerfile with Hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: Dockerfile
+          dockerfile: Laba_1/Dockerfile
           failure-threshold: error  # Падать только на errors, warnings разрешены
           output-file: hadolint-report.txt
 
