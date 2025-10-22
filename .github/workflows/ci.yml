@@ -46,7 +46,7 @@ jobs:
         run: |
           docker run --rm myapp:test echo "Container works!"
 
-      -name: Save build log
+      - name: Save build log
       run: |
         echo "Build completed at $(date)" > build-log.txt
         docker images | grep myapp >> build-log.txt
